@@ -67,7 +67,7 @@ pub fn add_log(logx: f64, logy: f64) -> f64 {
 /// # use lib_nltk::probability::FreqDist;
 /// let mut f: FreqDist<&str> = FreqDist::default();
 /// let words = ["apple","banana","apple","apple","pineapple"];
-/// f.init(&words);
+/// f.init(words);
 /// # let mut result = f.list();
 /// # result.sort();
 /// # let expected = vec![(&"apple",&3),(&"banana",&1),(&"pineapple",&1)]; //
