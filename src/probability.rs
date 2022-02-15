@@ -21,6 +21,7 @@
 //! ``ConditionalProbDist``, a derived distribution.
 //!
 
+use counter::Counter;
 use rand::Rng;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -62,19 +63,6 @@ pub fn add_log(logx: f64, logy: f64) -> f64 {
 /// # extern crate  lib_nltk;
 /// # use lib_nltk::probability::FreqDist;
 /// let mut f: FreqDist<&str> = FreqDist::default();
-/// f.add("apple").add("banana");
-/// # let mut result = f.list();
-/// # result.sort();
-/// # let expected = vec![(&"apple",&1),(&"banana",&1)];
-/// # assert_eq!(result,expected);
-/// ```
-///
-/// An equivalent way to do this is with the initializer:
-///
-/// ```rust
-/// # extern crate  lib_nltk;
-/// # use lib_nltk::probability::FreqDist;
-/// let mut f: FreqDist<&str> = FreqDist::default();
 /// let words = ["apple","banana","apple","apple","pineapple"];
 /// f.init(&words);
 /// # let mut result = f.list();
@@ -82,18 +70,25 @@ pub fn add_log(logx: f64, logy: f64) -> f64 {
 /// # let expected = vec![(&"apple",&3),(&"banana",&1),(&"pineapple",&1)]; //
 /// # assert_eq!(result,expected);
 /// ```
-#[derive(Debug, Default, Clone)]
-pub struct FreqDist<T> {
-    _map: HashMap<T, usize>,
-    _samples: usize,
+#[derive(Debug, Default, Clone, PartialEq)]
+pub struct FreqDist<T: Hash + Eq> {
+    counter: Counter<T, usize>,
 }
-impl<T: Hash + Eq + Copy> FreqDist<T> {
+
+impl<T> FreqDist<T>
+where
+    T: Hash + Eq + Copy,
+{
     /// Initializing the frequency distribution with a list of keys
     /// Any duplicate keys increment it's frequency count
     /// otherwise the count starts at 1.
-    pub fn init(&mut self, sample_list: &[T]) {
-        for k in sample_list {
-            self.add(*k);
+    pub fn init<I>(&mut self, sample_list: I)
+    where
+        I: IntoIterator<Item = T>,
+    {
+        for key in sample_list {
+            let val = self.counter.entry(key).or_insert_with(|| 0);
+            *val += 1;
         }
     }
     /// Adds a new sample into the frequency distribution
@@ -110,52 +105,45 @@ impl<T: Hash + Eq + Copy> FreqDist<T> {
     /// sample values (or bins) with counts greater than zero, use
     /// ``FreqDist.B()``.
     ///
+    /// # Example
+    ///
     /// ```rust
     /// # extern crate  lib_nltk;
     /// # use lib_nltk::probability::FreqDist;
     /// let mut f: FreqDist<&str> = FreqDist::default();
     /// let words = ["apple","banana","apple","apple","pineapple"];
-    /// f.init(&words);
+    /// f.init(words);
     /// # assert_eq!(f.N(),5);
     /// ```
     /// Returns 3
     #[allow(non_snake_case)]
     pub fn N(&self) -> usize {
-        self._samples
+        self.counter.values().sum()
     }
     /// Return the total number of sample values (or "bins") that
     /// have counts greater than zero.  For the total
     /// number of sample outcomes recorded, use ``FreqDist.N()``.
     /// (FreqDist.B() is the same as len(FreqDist).)
     ///
-    /// ```rust
-    /// # extern crate  lib_nltk;
-    /// # use lib_nltk::probability::FreqDist;
-    /// let mut f: FreqDist<&str> = FreqDist::default();
-    /// let words = ["apple","banana","apple","apple","pineapple"];
-    /// f.init(&words);
-    /// # assert_eq!(f.B(),3);
-    /// ```
-    /// Returns 2
-    #[allow(non_snake_case)]
-    pub fn B(&self) -> usize {
-        self._map.len()
-    }
-    /// Return a list of all samples that occur once
+    /// # Example
     ///
     /// ```rust
     /// # extern crate  lib_nltk;
     /// # use lib_nltk::probability::FreqDist;
     /// let mut f: FreqDist<&str> = FreqDist::default();
     /// let words = ["apple","banana","apple","apple","pineapple"];
-    /// f.init(&words);
-    /// # let mut result = f.hapaxes();
-    /// # result.sort();
-    /// # assert_eq!(result,["banana", "pineapple"]);
+    /// f.init(words);
+    /// # assert_eq!(f.B(),3);
     /// ```
     /// Returns 2
+    #[allow(non_snake_case)]
+    pub fn B(&self) -> usize {
+        self.counter.len()
+    }
+    /// Return a list of all samples that occur once
+    ///
     pub fn hapaxes(&self) -> Vec<T> {
-        self._map
+        self.counter
             .iter()
             .filter(|(_, &v)| v == 1)
             .map(|(&k, _)| k)
@@ -171,7 +159,7 @@ impl<T: Hash + Eq + Copy> FreqDist<T> {
     pub fn r_Nr<P: Into<Option<usize>>>(&self, bin: P) -> Vec<(&T, &usize)> {
         let _bin: usize = bin.into().unwrap_or_else(|| self.B());
         let limit = _bin - self.B();
-        self._map.iter().filter(|(_, &v)| v == limit).collect()
+        self.counter.iter().filter(|(_, &v)| v == limit).collect()
     }
     /// Return the frequency of a given sample.  The frequency of a
     /// sample is defined as the count of that sample divided by the
@@ -208,12 +196,14 @@ impl<T: Hash + Eq + Copy> FreqDist<T> {
     /// Returns a Vector of (Key,Value) pairs in the frequency distribution.
     /// The order of the pairs are undefined
     pub fn list(&self) -> Vec<(&T, &usize)> {
-        self._map.iter().collect()
+        self.counter.iter().collect()
     }
     /// Returns a Vector of the Keys in the frequency distribution.
     /// The order of keys are undefined
     pub fn list_keys(&self) -> Vec<&T> {
-        self._map.keys().collect()
+        self.counter.keys().collect()
+    }
+}
     }
 }
 
