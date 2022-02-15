@@ -204,19 +204,18 @@ impl<T: Hash + Eq + Copy> Add for FreqDist<T> {
     /// Add counts from two counters.
     fn add(self, rhs: Self) -> Self::Output {
         let mut lhs = self;
-        for (k, v) in rhs.counter.into_iter() {
-            let old_val = lhs.counter.entry(k).or_insert(0);
-            *old_val += v;
-        }
+        lhs.counter += rhs.counter;
         lhs
     }
 }
 impl<T: Hash + Eq + Copy> Sub for FreqDist<T> {
     type Output = FreqDist<T>;
 
-    /// Subtract count, but keep only results with positive counts.
+    /// Subtract count, but keep only results with positive non Zero counts.
     fn sub(self, rhs: Self) -> Self::Output {
-        todo!()
+        let mut lhs = self;
+        lhs.counter -= rhs.counter;
+        lhs
     }
 }
 impl<T: Hash + Eq + Copy> BitAnd for FreqDist<T> {
