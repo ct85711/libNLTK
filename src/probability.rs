@@ -24,7 +24,7 @@
 use counter::Counter;
 use rand::Rng;
 
-use std::cmp::{PartialEq, PartialOrd};
+use std::cmp::{Ordering, PartialEq, PartialOrd};
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::ops::{Add, BitAnd, BitOr, Sub};
@@ -73,7 +73,7 @@ pub fn add_log(logx: f64, logy: f64) -> f64 {
 /// # let expected = vec![(&"apple",&3),(&"banana",&1),(&"pineapple",&1)]; //
 /// # assert_eq!(result,expected);
 /// ```
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct FreqDist<T: Hash + Eq> {
     counter: Counter<T, usize>,
 }
@@ -238,9 +238,30 @@ impl<T: Hash + Eq + Copy> BitOr for FreqDist<T> {
         lhs
     }
 }
-impl<T: Hash + Eq + Copy> PartialOrd for FreqDist<T> {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        todo!()
+impl<T: Hash + Eq> PartialOrd for FreqDist<T>
+where
+    T: PartialOrd,
+{
+    // This may not be too accurate for UniCode characters
+    // As this is just comparing character bytes
+    // which may differ on come that is composed of multiple parts combined together
+    // TODO: Figure out a better way to compare Unicode characters
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if self.counter == other.counter {
+            Some(Ordering::Equal)
+        } else if self.counter.keys().collect::<Vec<_>>()
+            >= other.counter.keys().collect::<Vec<_>>()
+            && self.counter.values().ge(other.counter.values())
+        {
+            Some(Ordering::Greater)
+        } else if self.counter.keys().collect::<Vec<_>>()
+            <= other.counter.keys().collect::<Vec<_>>()
+            && self.counter.values().le(other.counter.values())
+        {
+            Some(Ordering::Less)
+        } else {
+            None
+        }
     }
 }
 
