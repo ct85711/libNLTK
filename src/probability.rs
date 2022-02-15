@@ -223,7 +223,9 @@ impl<T: Hash + Eq + Copy> BitAnd for FreqDist<T> {
 
     /// Intersection is the minimum of corresponding counts.
     fn bitand(self, rhs: Self) -> Self::Output {
-        todo!()
+        let mut lhs = self;
+        lhs.counter = lhs.counter & rhs.counter;
+        lhs
     }
 }
 impl<T: Hash + Eq + Copy> BitOr for FreqDist<T> {
@@ -231,7 +233,9 @@ impl<T: Hash + Eq + Copy> BitOr for FreqDist<T> {
 
     /// Union is the maximum of value in either of the input counters.
     fn bitor(self, rhs: Self) -> Self::Output {
-        todo!()
+        let mut lhs = self;
+        lhs.counter = lhs.counter | rhs.counter;
+        lhs
     }
 }
 impl<T: Hash + Eq + Copy> PartialOrd for FreqDist<T> {
