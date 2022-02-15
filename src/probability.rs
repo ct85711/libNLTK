@@ -23,8 +23,11 @@
 
 use counter::Counter;
 use rand::Rng;
+
+use std::cmp::{PartialEq, PartialOrd};
 use std::collections::HashMap;
 use std::hash::Hash;
+use std::ops::{Add, BitAnd, BitOr, Sub};
 
 #[inline(always)]
 fn _add_logs_max_diff() -> f64 {
@@ -90,15 +93,6 @@ where
             let val = self.counter.entry(key).or_insert_with(|| 0);
             *val += 1;
         }
-    }
-    /// Adds a new sample into the frequency distribution
-    /// Any duplicate keys increment it's frequency count
-    /// otherwise the count starts at 1.
-    pub fn add(&mut self, sample_key: T) -> &mut Self {
-        let value = *self._map.get(&sample_key).unwrap_or(&0);
-        self._map.insert(sample_key, value + 1);
-        self._samples += 1;
-        self
     }
     /// Return the total number of sample outcomes that have been
     /// recorded by this FreqDist.  For the number of unique
@@ -204,6 +198,46 @@ where
         self.counter.keys().collect()
     }
 }
+impl<T: Hash + Eq + Copy> Add for FreqDist<T> {
+    type Output = FreqDist<T>;
+
+    /// Add counts from two counters.
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut lhs = self;
+        for (k, v) in rhs.counter.into_iter() {
+            let old_val = lhs.counter.entry(k).or_insert(0);
+            *old_val += v;
+        }
+        lhs
+    }
+}
+impl<T: Hash + Eq + Copy> Sub for FreqDist<T> {
+    type Output = FreqDist<T>;
+
+    /// Subtract count, but keep only results with positive counts.
+    fn sub(self, rhs: Self) -> Self::Output {
+        todo!()
+    }
+}
+impl<T: Hash + Eq + Copy> BitAnd for FreqDist<T> {
+    type Output = FreqDist<T>;
+
+    /// Intersection is the minimum of corresponding counts.
+    fn bitand(self, rhs: Self) -> Self::Output {
+        todo!()
+    }
+}
+impl<T: Hash + Eq + Copy> BitOr for FreqDist<T> {
+    type Output = FreqDist<T>;
+
+    /// Union is the maximum of value in either of the input counters.
+    fn bitor(self, rhs: Self) -> Self::Output {
+        todo!()
+    }
+}
+impl<T: Hash + Eq + Copy> PartialOrd for FreqDist<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        todo!()
     }
 }
 
