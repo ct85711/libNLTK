@@ -3,7 +3,6 @@
 use regex::Regex;
 use unicode_segmentation::UnicodeSegmentation;
 
-use std::borrow::Cow;
 use std::fmt;
 
 /// Represets the sequence of a `(starting, ending)` tuple
@@ -24,12 +23,10 @@ pub type Token = (usize, usize);
 /// # extern crate lib_nltk;
 /// # use lib_nltk::tokenize::util::string_span_tokenize;
 /// let s = "Good muffins cost $3.88\nin New York.  Please buy me two of them.\n\nThanks.";
-/// # let expected_result = vec![(0, 4), (5, 12), (13, 17), (18, 26), (27, 30), (31, 36), (37, 37),(38, 44), (45, 48), (49, 51), (52, 55), (56, 58), (59, 73)];
+/// let expected_result = vec![(0, 4), (5, 12), (13, 17), (18, 26), (27, 30), (31, 36), (37, 37),(38, 44), (45, 48), (49, 51), (52, 55), (56, 58), (59, 73)];
 /// let result = string_span_tokenize(s, " ").unwrap();
 /// # assert_eq!(result,expected_result);
 /// ```
-/// `[(0, 4), (5, 12), (13, 17), (18, 26), (27, 30), (31, 36), (37, 37),
-/// (38, 44), (45, 48), (49, 55), (56, 58), (59, 73)]`
 pub fn string_span_tokenize(sent: &str, sep: &str) -> Result<Vec<Token>, TokenizeError> {
     let temp = sent.split(sep).collect::<Vec<_>>();
     if temp.is_empty() {
@@ -62,11 +59,10 @@ pub fn string_span_tokenize(sent: &str, sep: &str) -> Result<Vec<Token>, Tokeniz
 /// # extern crate lib_nltk;
 /// # use lib_nltk::tokenize::util::regexp_span_tokenize;
 /// let sentence = "The plane, bound for St Petersburg, crashed in Egypt's Sinai desert just 23 minutes after take-off from Sharm el-Sheikh on Saturday.";
-/// # let expected = vec![(0, 3),(4, 10),(11, 16),(17, 20),(21, 23),(24, 35),(36, 43),(44, 46),(47, 54),(55, 60),(61, 67),(68, 72),(73, 75),(76, 83),(84, 89),(90, 98),(99, 103),(104, 109),(110, 119),(120, 122),(123, 132)];
+/// let expected = vec![(0, 3),(4, 10),(11, 16),(17, 20),(21, 23),(24, 35),(36, 43),(44, 46),(47, 54),(55, 60),(61, 67),(68, 72),(73, 75),(76, 83),(84, 89),(90, 98),(99, 103),(104, 109),(110, 119),(120, 122),(123, 132)];
 /// let result = regexp_span_tokenize(sentence, r"\s+");
 /// # assert_eq!(result,expected);
 /// ```
-/// `[(0, 3),(4, 10),(11, 16),(17, 20),(21, 23),(24, 35),(36, 43),(44, 46),(47, 54),(55, 60),(61, 67),(68, 72),(73, 75),(76, 83),(84, 89),(90, 98),(99, 103),(104, 109),(110, 119),(120, 122),(123, 132)]`
 pub fn regexp_span_tokenize(sent: &str, regexp: &str) -> Vec<Token> {
     let re = Regex::new(regexp).unwrap();
     let mut result: Vec<Token> = Vec::new();
@@ -112,7 +108,7 @@ fn test_regexp_span_tokenize() {
 /// # use lib_nltk::tokenize::util::regexp_span_tokenize;
 /// # use lib_nltk::tokenize::util::spans_to_relative;
 /// let sentence = "Good muffins cost $3.88\nin New York.  Please buy me two of them.\n\nThanks.";
-/// # let expected = vec![(0, 4), (1, 7), (1, 4), (1, 5), (1, 2), (1, 3), (1, 5), (2, 6),(1, 3), (1, 2), (1, 3), (1, 2), (1, 5), (2, 7)];
+/// let expected = vec![(0, 4), (1, 7), (1, 4), (1, 5), (1, 2), (1, 3), (1, 5), (2, 6),(1, 3), (1, 2), (1, 3), (1, 2), (1, 5), (2, 7)];
 /// let result = spans_to_relative(regexp_span_tokenize(sentence, r"\s").as_ref());
 /// # assert_eq!(result,expected);
 /// ```
@@ -190,7 +186,7 @@ fn test_is_cjk() {
 /// # assert_eq!(result,expected_result);
 /// ```
 
-pub fn xml_escape<'a>(text: &str) -> Cow<'a, str> {
+pub fn xml_escape(text: &str) -> String {
     //Probably have a better way, but this should work for now
     text.replace('&', r"&amp;")
         .replace('>', r"&gt;")
@@ -200,7 +196,6 @@ pub fn xml_escape<'a>(text: &str) -> Cow<'a, str> {
         .replace('[', r"&#91;")
         .replace(']', r"&#93;")
         .replace('<', r"&lt;")
-        .into()
 }
 
 /// This function transforms the "escaped" version suitable
@@ -226,7 +221,7 @@ pub fn xml_escape<'a>(text: &str) -> Cow<'a, str> {
 /// let result = xml_unescape(s);
 /// # assert_eq!(result,expected_result);
 /// ```
-pub fn xml_unescape<'a>(text: &str) -> Cow<'a, str> {
+pub fn xml_unescape(text: &str) -> String {
     //Probably have a better way, but this should work for now
     text.replace(r"&amp;", "&")
         .replace(r"&gt;", ">")
@@ -236,7 +231,6 @@ pub fn xml_unescape<'a>(text: &str) -> Cow<'a, str> {
         .replace(r"&#91;", "[")
         .replace(r"&#93;", "]")
         .replace(r"&lt;", "<")
-        .into()
 }
 
 /// This module attempt to find the offsets of the tokens in *sent*, as a sequence
