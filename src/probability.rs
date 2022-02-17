@@ -62,6 +62,8 @@ pub fn add_log(logx: f64, logy: f64) -> f64 {
 /// following code will produce a frequency distribution that encodes
 /// how often each word occurs in a text:
 ///
+/// # Example
+///
 /// ```rust
 /// # extern crate  lib_nltk;
 /// # use lib_nltk::probability::FreqDist;
@@ -127,9 +129,10 @@ where
     /// let mut f: FreqDist<&str> = FreqDist::default();
     /// let words = ["apple","banana","apple","apple","pineapple"];
     /// f.init(words);
-    /// # assert_eq!(f.B(),3);
+    /// let result = f.B();
+    /// # assert_eq!(result,3);
     /// ```
-    /// Returns 2
+    /// Returns 3
     #[allow(non_snake_case)]
     pub fn B(&self) -> usize {
         self.counter.len()
@@ -300,7 +303,7 @@ where
     /// which sample is returned is undefined.
     fn max(&self) -> T;
     /// Return a list of all samples that have nonzero probabilities.
-    /// Use [prob] to find the probability of each sample.
+    /// Use [ProbDistI::prob] to find the probability of each sample.
     fn samples(&self) -> Vec<T>;
     /// Return the ratio by which counts are discounted on average: c*/c
     fn discount(&self) -> f32 {
@@ -334,11 +337,13 @@ pub struct UniformProbDist<T> {
 impl<T: Eq + Hash + Copy> UniformProbDist<T> {
     /// Construct a new uniform probability distribution, that assigns
     /// equal probability to each sample in ``samples``.
-    pub fn init(mut self, samples: &[&T]) -> Self {
-        samples.iter().for_each(|&s| {
-            let _ = self.sampleset.push(*s);
+    pub fn init<I>(&mut self, samples: I)
+    where
+        I: Iterator<Item = T>,
+    {
+        samples.for_each(|s| {
+            let _ = self.sampleset.push(s);
         });
-        self
     }
 }
 impl<T: Eq + Hash + Copy> ProbDistI<T> for UniformProbDist<T> {
