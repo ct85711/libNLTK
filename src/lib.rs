@@ -27,6 +27,7 @@ extern crate regex;
 pub mod collections;
 pub mod internals;
 pub mod probability;
+pub mod tag;
 pub mod tokenize;
 pub mod util;
 
